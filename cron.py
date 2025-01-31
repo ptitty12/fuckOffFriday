@@ -1,6 +1,8 @@
-from datetime import datetime
-
-
+from datetime import datetime, timedelta
+import json
+import requests
+import pandas as pd
+from database import update_productivity
 
 def get_number():
     def fetch_historical_trends(companies):
@@ -75,3 +77,5 @@ def get_number():
     companies = ['Salesforce','Oracle','Workday']
     df = fetch_historical_trends(companies)
     return turn_to_final_number(df,companies)
+
+update_productivity(get_number())

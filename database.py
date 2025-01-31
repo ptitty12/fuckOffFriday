@@ -26,3 +26,6 @@ def update_productivity(value):
               (today, value))
     conn.commit()
     conn.close()
+
+
+init_db()

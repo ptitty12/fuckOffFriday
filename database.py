@@ -7,9 +7,12 @@ def init_db():
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS productivity
                  (date TEXT PRIMARY KEY, value REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS t_series
+                (date TEXT PRIMARY KEY, value REAL)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS snapshots
+                (date TEXT, Salesforce REAL,Oracle REAL,Workday REAL,snapshot TEXT)''')
     conn.commit()
     conn.close()
-
 def get_latest_productivity():
     conn = sqlite3.connect('productivity.db')
     c = conn.cursor()
@@ -26,6 +29,22 @@ def update_productivity(value):
               (today, value))
     conn.commit()
     conn.close()
-
-
+def update_t_series(df):
+    conn = sqlite3.connect('productivity.db')
+    c = conn.cursor()
+    for _,row in df.iterrows():
+        c.execute('INSERT OR REPLACE INTO t_series (date, value) VALUES (?, ?)',
+                (row['date'], row['average']))
+    conn.commit()
+    conn.close()
+def update_snapshots(df):
+    """takes in the literal snapshot that we get from the api
+    should be date (likely index, then 'Salesforce','Oracle','Workday' in order)"""
+    conn = sqlite3.connect('productivity.db')
+    c = conn.cursor()
+    today = datetime.now().strftime('%Y-%m-%d')
+    for _, row in df.iterrows():
+        c.execute('INSERT into snapshots (date, Salesforce, Oracle, Workday, snapshot) VALUES (?,?,?,?,?)',(row['date'],row['Salesforce'],row['Oracle'],row['Workday'],today))
+    conn.commit()
+    conn.close()
 init_db()

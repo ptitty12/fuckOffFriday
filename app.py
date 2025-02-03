@@ -18,11 +18,8 @@ def get_productivity():
 def get_productivity_series():
     df = get_latest_productivity_series()
     # Add debug print
-    print("DataFrame:", df)
     data = df.to_dict()['value']
     data = {k.strftime('%Y-%m-%d'): v for k, v in data.items()}
-    # Add debug print
-    print("Returning data:", data)
     return jsonify({'value': data})
 
 

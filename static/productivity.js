@@ -1,5 +1,109 @@
 // static/productivity.js
 const { useState, useEffect } = React;
+const SimpleLineChart = () => {
+  const [data, setData] = useState([]);
+  const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, value: 0, date: '' });
+  
+  useEffect(() => {
+    fetch('/api/productivity_series')
+      .then(response => response.json())
+      .then(result => {
+        const chartData = Object.entries(result.value).map(([date, value]) => ({
+          date,
+          value: value * 100
+        })).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+        setData(chartData);
+      })
+      .catch(error => console.error('Error fetching productivity series:', error));
+  }, []);
+
+  if (data.length === 0) return null;
+
+  // Reduced dimensions (25% of original)
+  const width = 380;  // Was 600
+  const height = 50;  // Was 200
+  const padding = 10; // Was 20
+
+  const maxValue = Math.max(...data.map(d => d.value));
+  const minValue = Math.min(...data.map(d => d.value));
+
+  const xScale = (index) => padding + (index * ((width - 2 * padding) / (data.length - 1)));
+  const yScale = (value) => height - padding - ((value - minValue) * (height - 2 * padding) / (maxValue - minValue));
+
+  const pathD = data.map((point, index) => 
+    (index === 0 ? 'M' : 'L') + `${xScale(index)},${yScale(point.value)}`
+  ).join(' ');
+
+  return React.createElement('div', {
+    className: 'relative mx-auto mb-4',  // Added margin-bottom
+    style: { height: `${height}px` }
+  }, [
+    React.createElement('svg', {
+      width: '100%',
+      height: '100%',
+      viewBox: `0 0 ${width} ${height}`,
+      className: 'overflow-visible'
+    }, [
+      // Line
+      React.createElement('path', {
+        d: pathD,
+        stroke: '#3b82f6',
+        strokeWidth: '1.5',
+        fill: 'none'
+      }),
+      // Date labels
+      React.createElement('text', {
+        x: padding,
+        y: height,
+        className: 'text-xs text-gray-500',
+        style: { fontSize: '6px' }
+      }, data[0].date),
+      React.createElement('text', {
+        x: width - padding,
+        y: height,
+        className: 'text-xs text-gray-500 text-right',
+        style: { fontSize: '6px' }
+      }, data[data.length - 1].date),
+      // Interactive points
+      ...data.map((point, index) => 
+        React.createElement('circle', {
+          cx: xScale(index),
+          cy: yScale(point.value),
+          r: '3',
+          fill: 'transparent',
+          stroke: 'transparent',
+          className: 'cursor-pointer',
+          onMouseEnter: (e) => {
+            setTooltip({
+              show: true,
+              x: e.clientX,
+              y: e.clientY,
+              value: point.value,
+              date: point.date
+            });
+          },
+          onMouseLeave: () => setTooltip({ show: false }),
+          key: point.date
+        })
+      )
+    ]),
+    // Tooltip
+    tooltip.show && React.createElement('div', {
+      className: 'absolute bg-white p-1 rounded shadow-lg text-xs',
+      style: {
+        left: tooltip.x,
+        top: tooltip.y - 30,
+        transform: 'translateX(-50%)'
+      }
+    }, [
+      React.createElement('div', {}, tooltip.date),
+      React.createElement('div', { className: 'font-bold text-blue-500' }, 
+        `${tooltip.value.toFixed(1)}%`
+      )
+    ])
+  ]);
+};
+
 
 const ProductivityGauge = () => {
   const [targetValue, setTargetValue] = useState(0);
@@ -91,6 +195,24 @@ const ProductivityGauge = () => {
   );
 };
 
-// Render the component
+const App = () => {
+  return React.createElement('div', { 
+    className: "flex flex-col items-center min-h-screen relative" // Added relative
+  }, [
+    // Line chart with absolute positioning
+    React.createElement('div', { 
+      className: "absolute top-32 z-10" // This positions it above the gauge
+    }, 
+      React.createElement(SimpleLineChart)
+    ),
+    // Gauge stays centered
+    React.createElement('div', { 
+      className: "flex flex-col items-center justify-center min-h-screen"
+    }, 
+      React.createElement(ProductivityGauge)
+    )
+  ]);
+};
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(ProductivityGauge));
+root.render(React.createElement(App));

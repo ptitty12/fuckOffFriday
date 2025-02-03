@@ -14,6 +14,7 @@ def init_db():
     conn.commit()
     conn.close()
 def get_latest_productivity():
+    """fetch productivity number"""
     conn = sqlite3.connect('productivity.db')
     c = conn.cursor()
     c.execute('SELECT value FROM productivity ORDER BY date DESC LIMIT 1')
@@ -21,7 +22,25 @@ def get_latest_productivity():
     conn.close()
     return result[0] if result else 0
 
+def get_latest_productivity_series():
+    """fetch productivity df return df"""
+    conn = sqlite3.connect('productivity.db')
+    c = conn.cursor()
+    c.execute('SELECT date, value FROM t_series ORDER BY date')
+    result = c.fetchall()  # Get all rows
+    conn.close()
+    
+    # Convert to DataFrame
+    import pandas as pd
+    df = pd.DataFrame(result, columns=['date', 'value'])
+    # Optionally set date as index
+    df['date'] = pd.to_datetime(df['date'])
+    df = df.set_index('date')
+    
+    return df
+
 def update_productivity(value):
+    """takes single value updates the database"""
     conn = sqlite3.connect('productivity.db')
     c = conn.cursor()
     today = datetime.now().strftime('%Y-%m-%d')
@@ -30,11 +49,14 @@ def update_productivity(value):
     conn.commit()
     conn.close()
 def update_t_series(df):
+    """takes in df formatted date, value, where value is named average"""
     conn = sqlite3.connect('productivity.db')
     c = conn.cursor()
-    for _,row in df.iterrows():
+    for _, row in df.iterrows():
+        # Convert timestamp to string format
+        date_str = row['date'].strftime('%Y-%m-%d')
         c.execute('INSERT OR REPLACE INTO t_series (date, value) VALUES (?, ?)',
-                (row['date'], row['average']))
+                (date_str, row['average']))
     conn.commit()
     conn.close()
 def update_snapshots(df):

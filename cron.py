@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import json
 import requests
 import pandas as pd
-from database import update_productivity
+from database import update_productivity, update_snapshots, update_t_series
 
 def fetch_historical_trends(companies):
     """
@@ -77,10 +77,14 @@ def turn_to_final_number(df,companies):
     #return turn_to_final_number(df,companies)
 companies = ['Salesforce','Oracle','Workday']
 df = fetch_historical_trends(companies)
+print(df, "df step 1")
 df_time = df.copy()
 df_time['average'] = df[companies].mean(axis=1)
+print(df_time,"step 2 df")
+foo = turn_to_final_number(df,companies)
+#update_productivity(foo)
+update_t_series(df_time)
+
+
 #df.drop(columns=['average'],inplace=True) shoudln't be needed
 
-fetch_historical_trends(companies)
-# get number needs to take in the single number
-update_productivity(get_number())

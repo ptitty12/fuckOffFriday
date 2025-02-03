@@ -197,11 +197,12 @@ const ProductivityGauge = () => {
 
 const App = () => {
   return React.createElement('div', { 
-    className: "flex flex-col items-center min-h-screen relative" // Added relative
+    className: "flex flex-col items-center min-h-screen relative"
   }, [
-    // Line chart with absolute positioning
+    // Line chart with precise positioning
     React.createElement('div', { 
-      className: "absolute top-32 z-10" // This positions it above the gauge
+      className: "absolute z-10",
+      style: { top: '215px' }  // We can adjust this pixel by pixel
     }, 
       React.createElement(SimpleLineChart)
     ),

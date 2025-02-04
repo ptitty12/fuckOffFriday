@@ -10,7 +10,7 @@ const SimpleLineChart = () => {
       .then(result => {
         const chartData = Object.entries(result.value).map(([date, value]) => ({
           date,
-          value: value * 100
+          value: value
         })).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
         setData(chartData);
       })
@@ -20,7 +20,7 @@ const SimpleLineChart = () => {
   if (data.length === 0) return null;
 
   // Reduced dimensions (25% of original)
-  const width = 380;  // Was 600
+  const width = 450;  // Was 600
   const height = 50;  // Was 200
   const padding = 10; // Was 20
 
@@ -35,8 +35,7 @@ const SimpleLineChart = () => {
   ).join(' ');
 
   return React.createElement('div', {
-    className: 'relative mx-auto mb-4',  // Added margin-bottom
-    style: { height: `${height}px` }
+    className: 'relative mx-auto mb-4'  // Added margin-bottom
   }, [
     React.createElement('svg', {
       width: '100%',
@@ -194,24 +193,105 @@ const ProductivityGauge = () => {
     )
   );
 };
+const InfoModal = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+  
+  return React.createElement('div', {
+    className: 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center'
+  }, 
+    React.createElement('div', {
+      className: 'bg-white rounded-2xl p-6 max-w-md mx-4 relative shadow-xl transform transition-all',
+      style: {
+        background: 'linear-gradient(120deg, #f8fafc 0%, #f1f5f9 100%)'
+      }
+    }, [
+      // Close button
+      React.createElement('button', {
+        className: 'absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors',
+        onClick: onClose
+      }, '×'),
+      
+      // Content
+      React.createElement('div', {
+        className: 'space-y-4'
+      }, [
+        React.createElement('h2', {
+          className: 'text-xl font-semibold text-gray-800'
+        }, 'Hey There :)'),
+        React.createElement('p', {
+          className: 'text-gray-600'
+        }, 'Getting ghosted by your coworkers? Feeling unmotivated? Want to know if its just you?'),
+        React.createElement('p', {
+          className: 'text-gray-600'
+        }, 'The novel fuck-off-friday meter analyzes search traffic for leading B2B software to determine worker productivity. Refreshed daily at 9am CST ')
+      ])
+    ])
+  );
+};
+
+
 
 const App = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   return React.createElement('div', { 
-    className: "flex flex-col items-center min-h-screen relative"
+    className: "flex flex-col items-center min-h-screen relative" 
   }, [
-    // Line chart with precise positioning
+    // Icons container
+    React.createElement('div', {
+      className: "absolute top-4 right-4 flex gap-3 z-20" // Added gap between icons
+    }, [
+      // GitHub Icon
+      React.createElement('a', {
+        href: 'https://github.com/ptitty12',
+        target: '_blank',
+        className: "w-8 h-8 flex items-center justify-center rounded-full bg-white bg-opacity-80 hover:bg-opacity-100 transition-all duration-300 shadow-md"
+      },
+        React.createElement('div', {
+          className: "text-gray-700"
+        }, "🐙") // Or use "⌥" for more minimal look
+      ),
+      
+      // Twitter Icon
+      React.createElement('a', {
+        href: 'https://twitter.com/patricktaylor05',
+        target: '_blank',
+        className: "w-8 h-8 flex items-center justify-center rounded-full bg-white bg-opacity-80 hover:bg-opacity-100 transition-all duration-300 shadow-md"
+      },
+        React.createElement('div', {
+          className: "text-blue-400"
+        }, "🐦") // Or use "𝕏" for new X logo
+      ),
+      
+      // Info Icon (moved into the container)
+      React.createElement('button', {
+        className: "w-8 h-8 flex items-center justify-center rounded-full bg-white bg-opacity-80 hover:bg-opacity-100 transition-all duration-300 shadow-md",
+        onClick: () => setIsModalOpen(true)
+      },
+        React.createElement('div', {
+          className: "text-blue-500 text-xl font-semibold"
+        }, "ⓘ")
+      )
+    ]),
+    
+    // Rest of your components...
     React.createElement('div', { 
       className: "absolute z-10",
-      style: { top: '215px' }  // We can adjust this pixel by pixel
+      style: { top: '250px' }
     }, 
       React.createElement(SimpleLineChart)
     ),
-    // Gauge stays centered
+    
     React.createElement('div', { 
       className: "flex flex-col items-center justify-center min-h-screen"
     }, 
       React.createElement(ProductivityGauge)
-    )
+    ),
+    
+    React.createElement(InfoModal, {
+      isOpen: isModalOpen,
+      onClose: () => setIsModalOpen(false)
+    })
   ]);
 };
 

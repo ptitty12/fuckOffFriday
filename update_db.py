@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 from database import (
-    fetch_historical_trends,
-    turn_to_final_number,
+    update_productivity, update_t_series
 )
-from cron import update_productivity, update_t_series
+from cron import fetch_historical_trends, turn_to_final_number
 import logging
 from datetime import datetime
 

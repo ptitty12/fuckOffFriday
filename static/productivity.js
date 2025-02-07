@@ -27,8 +27,8 @@ const SimpleBarChart = () => {
 
   if (data.length === 0) return null;
 
-  const width = 450;
-  const height = 50;
+  const width = 1500;
+  const height = 200;
   const padding = 10;
   const barPadding = 1;
   const barWidth = ((width - 2 * padding) / data.length) - barPadding;
@@ -113,7 +113,6 @@ const SimpleBarChart = () => {
     tooltip.show && React.createElement('div', {
       className: "absolute bg-white p-1 rounded shadow-lg text-xs pointer-events-none",
       style: {
-        position: 'absolute',
         left: tooltip.x + 'px',
         top: (tooltip.y - 10) + 'px',
         transform: 'translate(-50%, -100%)',
@@ -127,7 +126,6 @@ const SimpleBarChart = () => {
     ])
   ]);
 };
-
 
 const ProductivityGauge = () => {
   const [targetValue, setTargetValue] = useState(0);
@@ -175,48 +173,44 @@ const ProductivityGauge = () => {
   const { text, bg } = getColors(displayValue);
 
   return React.createElement('div', {
-    className: "flex flex-col items-center justify-center min-h-screen"
-  }, 
-    React.createElement('div', {
-      className: `p-8 rounded-2xl ${bg} transition-all duration-500`
+    className: `p-8 rounded-2xl ${bg} transition-all duration-500`
+  }, [
+    React.createElement('div', { 
+      className: "relative" 
     }, [
-      React.createElement('div', { 
-        className: "relative" 
+      React.createElement('div', {
+        className: `text-8xl font-bold ${text} transition-all duration-300`
+      }, `${displayValue > 0 ? '+' : ''}${displayValue.toFixed(1)}%`),
+      
+      React.createElement('div', {
+        className: "absolute right-0 top-0 transform translate-x-full -translate-y-1/4"
       }, [
-        React.createElement('div', {
-          className: `text-8xl font-bold ${text} transition-all duration-300`
-        }, `${displayValue > 0 ? '+' : ''}${displayValue.toFixed(1)}%`),
-        
-        React.createElement('div', {
-          className: "absolute right-0 top-0 transform translate-x-full -translate-y-1/4"
-        }, [
-          displayValue > 0 && React.createElement('div', {
-            className: `text-6xl ${text} ${isAnimating ? 'animate-bounce' : ''}`
-          }, "↑"),
-          displayValue < 0 && React.createElement('div', {
-            className: `text-6xl ${text} ${isAnimating ? 'animate-bounce' : ''}`
-          }, "↓")
-        ])
-      ]),
-      
-      React.createElement('div', {
-        className: `text-xl mt-4 ${text} text-center font-medium`
-      }, 
-        displayValue === 0 ? "Average Productivity" :
-        displayValue > 0 ? "Above Average Productivity" :
-        "Below Average Productivity"
-      ),
-      
-      React.createElement('div', {
-        className: `absolute inset-0 rounded-2xl ${text} opacity-50 ${isAnimating ? 'animate-pulse' : ''}`,
-        style: {
-          border: '2px solid currentColor',
-          transform: 'scale(1.05)',
-          zIndex: -1
-        }
-      })
-    ])
-  );
+        displayValue > 0 && React.createElement('div', {
+          className: `text-6xl ${text} ${isAnimating ? 'animate-bounce' : ''}`
+        }, "↑"),
+        displayValue < 0 && React.createElement('div', {
+          className: `text-6xl ${text} ${isAnimating ? 'animate-bounce' : ''}`
+        }, "↓")
+      ])
+    ]),
+    
+    React.createElement('div', {
+      className: `text-xl mt-4 ${text} text-center font-medium`
+    }, 
+      displayValue === 0 ? "Average Productivity" :
+      displayValue > 0 ? "Above Average Productivity" :
+      "Below Average Productivity"
+    ),
+    
+    React.createElement('div', {
+      className: `absolute inset-0 rounded-2xl ${text} opacity-50 ${isAnimating ? 'animate-pulse' : ''}`,
+      style: {
+        border: '2px solid currentColor',
+        transform: 'scale(1.05)',
+        zIndex: -1
+      }
+    })
+  ]);
 };
 
 const InfoModal = ({ isOpen, onClose }) => {
@@ -253,12 +247,11 @@ const InfoModal = ({ isOpen, onClose }) => {
   );
 };
 
-// Update App component to use SimpleBarChart
 const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   return React.createElement('div', { 
-    className: "flex flex-col items-center min-h-screen relative" 
+    className: "h-screen overflow-hidden"
   }, [
     // Icons container
     React.createElement('div', {
@@ -292,17 +285,25 @@ const App = () => {
       )
     ]),
     
+    // Main content with fixed positioning
     React.createElement('div', { 
-      className: "absolute z-10",
-      style: { top: '250px' }
+      className: "fixed inset-0 flex items-center justify-center"
     }, 
-      React.createElement(SimpleBarChart)
-    ),
-    
-    React.createElement('div', { 
-      className: "flex flex-col items-center justify-center min-h-screen"
-    }, 
-      React.createElement(ProductivityGauge)
+      React.createElement('div', { 
+        className: "relative"
+      }, [
+        // Bar chart positioned above the gauge
+        React.createElement('div', { 
+          className: "absolute left-1/2 transform -translate-x-1/2 -translate-y-6"
+        }, 
+          React.createElement(SimpleBarChart)
+        ),
+        
+        // Productivity gauge
+        React.createElement('div', {}, 
+          React.createElement(ProductivityGauge)
+        )
+      ])
     ),
     
     React.createElement(InfoModal, {
@@ -312,5 +313,6 @@ const App = () => {
   ]);
 };
 
+// Create root and render
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(React.createElement(App));

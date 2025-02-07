@@ -1,17 +1,25 @@
-// static/productivity.js
-const { useState, useEffect } = React;
-const SimpleLineChart = () => {
+// Use React from global scope
+const { useState, useEffect, useRef } = React;
+
+const SimpleBarChart = () => {
   const [data, setData] = useState([]);
   const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, value: 0, date: '' });
+  const chartRef = useRef(null);
   
   useEffect(() => {
     fetch('/api/productivity_series')
       .then(response => response.json())
       .then(result => {
-        const chartData = Object.entries(result.value).map(([date, value]) => ({
-          date,
-          value: value
-        })).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+        const chartData = Object.entries(result.value).map(([date, value]) => {
+          const dateObj = new Date(date + 'T12:00:00');
+          return {
+            date,
+            value: value,
+            dayOfWeek: dateObj.getDay(),
+            dayName: dateObj.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
+          };
+        }).sort((a, b) => new Date(a.date) - new Date(b.date));
+        
         setData(chartData);
       })
       .catch(error => console.error('Error fetching productivity series:', error));
@@ -19,86 +27,103 @@ const SimpleLineChart = () => {
 
   if (data.length === 0) return null;
 
-  // Reduced dimensions (25% of original)
-  const width = 450;  // Was 600
-  const height = 50;  // Was 200
-  const padding = 10; // Was 20
+  const width = 450;
+  const height = 50;
+  const padding = 10;
+  const barPadding = 1;
+  const barWidth = ((width - 2 * padding) / data.length) - barPadding;
 
   const maxValue = Math.max(...data.map(d => d.value));
   const minValue = Math.min(...data.map(d => d.value));
 
-  const xScale = (index) => padding + (index * ((width - 2 * padding) / (data.length - 1)));
+  const xScale = (index) => padding + (index * (barWidth + barPadding));
   const yScale = (value) => height - padding - ((value - minValue) * (height - 2 * padding) / (maxValue - minValue));
 
-  const pathD = data.map((point, index) => 
-    (index === 0 ? 'M' : 'L') + `${xScale(index)},${yScale(point.value)}`
-  ).join(' ');
+  const now = new Date();
+  const currentDayOfWeek = now.getDay();
+  
+  const today = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).split('/').reverse().join('-');
+
+  const shouldHighlight = (point) => {
+    const pointDate = new Date(point.date + 'T12:00:00');
+    const pointDateString = pointDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).split('/').reverse().join('-');
+    
+    if (pointDateString === today) {
+      return true;
+    }
+    
+    return pointDate < now && point.dayOfWeek === currentDayOfWeek;
+  };
 
   return React.createElement('div', {
-    className: 'relative mx-auto mb-4'  // Added margin-bottom
+    ref: chartRef,
+    className: "relative mx-auto mb-4"
   }, [
     React.createElement('svg', {
-      width: '100%',
-      height: '100%',
+      width: "100%",
+      height: "100%",
       viewBox: `0 0 ${width} ${height}`,
-      className: 'overflow-visible'
+      className: "overflow-visible"
     }, [
-      // Line
-      React.createElement('path', {
-        d: pathD,
-        stroke: '#3b82f6',
-        strokeWidth: '1.5',
-        fill: 'none'
-      }),
-      // Date labels
+      ...data.map((point, index) => 
+        React.createElement('rect', {
+          key: point.date,
+          x: xScale(index),
+          y: yScale(point.value),
+          width: barWidth,
+          height: height - padding - yScale(point.value),
+          fill: shouldHighlight(point) ? '#22c55e' : '#3b82f6',
+          className: "cursor-pointer transition-colors duration-200 hover:opacity-80",
+          onMouseEnter: (e) => {
+            const rect = chartRef.current.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            setTooltip({
+              show: true,
+              x,
+              y,
+              value: point.value,
+              date: `${point.date} (${point.dayName})`
+            });
+          },
+          onMouseLeave: () => setTooltip({ show: false })
+        })
+      ),
       React.createElement('text', {
         x: padding,
         y: height,
-        className: 'text-xs text-gray-500',
+        className: "text-xs text-gray-500",
         style: { fontSize: '6px' }
       }, data[0].date),
       React.createElement('text', {
         x: width - padding,
         y: height,
-        className: 'text-xs text-gray-500 text-right',
+        className: "text-xs text-gray-500 text-right",
         style: { fontSize: '6px' }
-      }, data[data.length - 1].date),
-      // Interactive points
-      ...data.map((point, index) => 
-        React.createElement('circle', {
-          cx: xScale(index),
-          cy: yScale(point.value),
-          r: '3',
-          fill: 'transparent',
-          stroke: 'transparent',
-          className: 'cursor-pointer',
-          onMouseEnter: (e) => {
-            setTooltip({
-              show: true,
-              x: e.clientX,
-              y: e.clientY,
-              value: point.value,
-              date: point.date
-            });
-          },
-          onMouseLeave: () => setTooltip({ show: false }),
-          key: point.date
-        })
-      )
+      }, data[data.length - 1].date)
     ]),
-    // Tooltip
     tooltip.show && React.createElement('div', {
-      className: 'absolute bg-white p-1 rounded shadow-lg text-xs',
+      className: "absolute bg-white p-1 rounded shadow-lg text-xs pointer-events-none",
       style: {
-        left: tooltip.x,
-        top: tooltip.y - 30,
-        transform: 'translateX(-50%)'
+        position: 'absolute',
+        left: tooltip.x + 'px',
+        top: (tooltip.y - 10) + 'px',
+        transform: 'translate(-50%, -100%)',
+        pointerEvents: 'none'
       }
     }, [
       React.createElement('div', {}, tooltip.date),
-      React.createElement('div', { className: 'font-bold text-blue-500' }, 
-        `${tooltip.value.toFixed(1)}%`
-      )
+      React.createElement('div', {
+        className: "font-bold text-blue-500"
+      }, `${tooltip.value.toFixed(1)}%`)
     ])
   ]);
 };
@@ -109,17 +134,15 @@ const ProductivityGauge = () => {
   const [displayValue, setDisplayValue] = useState(0);
   const [isAnimating, setIsAnimating] = useState(true);
   
-  // Fetch the actual value from the API
   useEffect(() => {
     fetch('/api/productivity')
       .then(response => response.json())
       .then(data => {
-        setTargetValue(data.value * 100); // Multiply by 100 to convert to percentage
+        setTargetValue(data.value * 100);
       })
       .catch(error => console.error('Error fetching productivity:', error));
   }, []);
   
-  // Animation effect
   useEffect(() => {
     const duration = 2000;
     const steps = 60;
@@ -156,27 +179,29 @@ const ProductivityGauge = () => {
   }, 
     React.createElement('div', {
       className: `p-8 rounded-2xl ${bg} transition-all duration-500`
-    },
-      React.createElement('div', { className: "relative" },
+    }, [
+      React.createElement('div', { 
+        className: "relative" 
+      }, [
         React.createElement('div', {
           className: `text-8xl font-bold ${text} transition-all duration-300`
         }, `${displayValue > 0 ? '+' : ''}${displayValue.toFixed(1)}%`),
         
         React.createElement('div', {
           className: "absolute right-0 top-0 transform translate-x-full -translate-y-1/4"
-        },
+        }, [
           displayValue > 0 && React.createElement('div', {
             className: `text-6xl ${text} ${isAnimating ? 'animate-bounce' : ''}`
           }, "↑"),
           displayValue < 0 && React.createElement('div', {
             className: `text-6xl ${text} ${isAnimating ? 'animate-bounce' : ''}`
           }, "↓")
-        )
-      ),
+        ])
+      ]),
       
       React.createElement('div', {
         className: `text-xl mt-4 ${text} text-center font-medium`
-      },
+      }, 
         displayValue === 0 ? "Average Productivity" :
         displayValue > 0 ? "Above Average Productivity" :
         "Below Average Productivity"
@@ -190,9 +215,10 @@ const ProductivityGauge = () => {
           zIndex: -1
         }
       })
-    )
+    ])
   );
 };
+
 const InfoModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
   
@@ -205,13 +231,11 @@ const InfoModal = ({ isOpen, onClose }) => {
         background: 'linear-gradient(120deg, #f8fafc 0%, #f1f5f9 100%)'
       }
     }, [
-      // Close button
       React.createElement('button', {
         className: 'absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors',
         onClick: onClose
       }, '×'),
       
-      // Content
       React.createElement('div', {
         className: 'space-y-4'
       }, [
@@ -223,14 +247,13 @@ const InfoModal = ({ isOpen, onClose }) => {
         }, 'Getting ghosted by your coworkers? Feeling unmotivated? Want to know if its just you?'),
         React.createElement('p', {
           className: 'text-gray-600'
-        }, 'The novel fuck-off-friday meter analyzes search traffic for leading B2B software to determine worker productivity. Refreshed daily at 9am CST ')
+        }, 'The novel fuck-off-friday meter analyzes search traffic for leading B2B software to determine worker productivity. Refreshed daily at 9am CST')
       ])
     ])
   );
 };
 
-
-
+// Update App component to use SimpleBarChart
 const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -239,9 +262,8 @@ const App = () => {
   }, [
     // Icons container
     React.createElement('div', {
-      className: "absolute top-4 right-4 flex gap-3 z-20" // Added gap between icons
+      className: "absolute top-4 right-4 flex gap-3 z-20"
     }, [
-      // GitHub Icon
       React.createElement('a', {
         href: 'https://github.com/ptitty12',
         target: '_blank',
@@ -249,10 +271,8 @@ const App = () => {
       },
         React.createElement('div', {
           className: "text-gray-700"
-        }, "🐙") // Or use "⌥" for more minimal look
+        }, "🐙")
       ),
-      
-      // Twitter Icon
       React.createElement('a', {
         href: 'https://twitter.com/patricktaylor05',
         target: '_blank',
@@ -260,10 +280,8 @@ const App = () => {
       },
         React.createElement('div', {
           className: "text-blue-400"
-        }, "🐦") // Or use "𝕏" for new X logo
+        }, "🐦")
       ),
-      
-      // Info Icon (moved into the container)
       React.createElement('button', {
         className: "w-8 h-8 flex items-center justify-center rounded-full bg-white bg-opacity-80 hover:bg-opacity-100 transition-all duration-300 shadow-md",
         onClick: () => setIsModalOpen(true)
@@ -274,12 +292,11 @@ const App = () => {
       )
     ]),
     
-    // Rest of your components...
     React.createElement('div', { 
       className: "absolute z-10",
       style: { top: '250px' }
     }, 
-      React.createElement(SimpleLineChart)
+      React.createElement(SimpleBarChart)
     ),
     
     React.createElement('div', { 

@@ -77,10 +77,8 @@ def turn_to_final_number(df,companies):
     #return turn_to_final_number(df,companies)
 #companies = ['Salesforce','Oracle','Workday']
 #df = fetch_historical_trends(companies)
-#print(df, "df step 1")
 #df_time = df.copy()
 #df_time['average'] = df[companies].mean(axis=1)
-#print(df_time,"step 2 df")
 #foo = turn_to_final_number(df,companies)
 #update_productivity(foo)
 #update_t_series(df_time)

@@ -3,23 +3,27 @@ const { useState, useEffect, useRef } = React;
 
 const SimpleBarChart = () => {
   const [data, setData] = useState([]);
-  const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, value: 0, date: '' });
+  const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, value: 0, percentChange: 0, date: '' });
   const chartRef = useRef(null);
   
   useEffect(() => {
     fetch('/api/productivity_series')
       .then(response => response.json())
       .then(result => {
-        const chartData = Object.entries(result.value).map(([date, value]) => {
+        console.log("API result:", result); // Debug log to see the structure
+        
+        const chartData = Object.entries(result.value).map(([date, dataObj]) => {
           const dateObj = new Date(date + 'T12:00:00');
           return {
             date,
-            value: value,
+            value: dataObj.value, // Access the value property
+            percentChange: dataObj.percent_change, // Store percent_change
             dayOfWeek: dateObj.getDay(),
             dayName: dateObj.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
           };
         }).sort((a, b) => new Date(a.date) - new Date(b.date));
         
+        console.log("Processed chart data:", chartData); // Debug log
         setData(chartData);
       })
       .catch(error => console.error('Error fetching productivity series:', error));
@@ -101,6 +105,7 @@ const SimpleBarChart = () => {
               x,
               y,
               value: point.value,
+              percentChange: point.percentChange,
               date: `${point.date} (${point.dayName})`
             });
           },
@@ -132,7 +137,10 @@ const SimpleBarChart = () => {
       React.createElement('div', {}, tooltip.date),
       React.createElement('div', {
         className: "font-bold text-blue-500"
-      }, `${tooltip.value.toFixed(1)}%`)
+      }, `Value: ${tooltip.value.toFixed(1)}`),
+      React.createElement('div', {
+        className: tooltip.percentChange >= 0 ? "font-bold text-green-500" : "font-bold text-red-500"
+      }, `vs Same Day: ${tooltip.percentChange >= 0 ? '+' : ''}${tooltip.percentChange.toFixed(1)}%`)
     ])
   ]);
 };

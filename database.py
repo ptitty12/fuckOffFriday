@@ -69,3 +69,4 @@ def update_snapshots(df):
         c.execute('INSERT into snapshots (date, Salesforce, Oracle, Workday, snapshot) VALUES (?,?,?,?,?)',(row['date'],row['Salesforce'],row['Oracle'],row['Workday'],today))
     conn.commit()
     conn.close()
+

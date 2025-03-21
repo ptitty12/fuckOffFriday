@@ -74,15 +74,4 @@ def turn_to_final_number(df,companies):
     final = sum(scores)/len(scores)
     return final
 
-    #return turn_to_final_number(df,companies)
-#companies = ['Salesforce','Oracle','Workday']
-#df = fetch_historical_trends(companies)
-#df_time = df.copy()
-#df_time['average'] = df[companies].mean(axis=1)
-#foo = turn_to_final_number(df,companies)
-#update_productivity(foo)
-#update_t_series(df_time)
-
-
-#df.drop(columns=['average'],inplace=True) shoudln't be needed
 

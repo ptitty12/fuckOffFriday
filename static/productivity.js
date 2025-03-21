@@ -27,16 +27,26 @@ const SimpleBarChart = () => {
 
   if (data.length === 0) return null;
 
-  const width = 1500;
-  const height = 200;
+  const width = 2400;
+  const height = 500;
   const padding = 10;
   const barPadding = 1;
-  const barWidth = ((width - 2 * padding) / data.length) - barPadding;
+  const barWidth = 30;
+  
+  // Calculate how many bars we can fit in the chart
+  const maxBars = Math.floor((width - 2 * padding) / (barWidth + barPadding));
+  
+  // If we have more data points than can fit, only show the most recent ones
+  const visibleData = data.length > maxBars ? data.slice(-maxBars) : data;
+  
+  // Center the chart by calculating the starting X position
+  const totalBarsWidth = visibleData.length * (barWidth + barPadding) - barPadding;
+  const startX = (width - totalBarsWidth) / 2;
 
-  const maxValue = Math.max(...data.map(d => d.value));
-  const minValue = Math.min(...data.map(d => d.value));
+  const maxValue = Math.max(...visibleData.map(d => d.value));
+  const minValue = Math.min(...visibleData.map(d => d.value));
 
-  const xScale = (index) => padding + (index * (barWidth + barPadding));
+  const xScale = (index) => startX + (index * (barWidth + barPadding));
   const yScale = (value) => height - padding - ((value - minValue) * (height - 2 * padding) / (maxValue - minValue));
 
   const now = new Date();
@@ -73,7 +83,7 @@ const SimpleBarChart = () => {
       viewBox: `0 0 ${width} ${height}`,
       className: "overflow-visible"
     }, [
-      ...data.map((point, index) => 
+      ...visibleData.map((point, index) => 
         React.createElement('rect', {
           key: point.date,
           x: xScale(index),
@@ -98,23 +108,23 @@ const SimpleBarChart = () => {
         })
       ),
       React.createElement('text', {
-        x: padding,
+        x: startX,
         y: height,
         className: "text-xs text-gray-500",
-        style: { fontSize: '6px' }
-      }, data[0].date),
+        style: { fontSize: '12px' }
+      }, visibleData[0].date),
       React.createElement('text', {
-        x: width - padding,
+        x: xScale(visibleData.length - 1) + barWidth,
         y: height,
         className: "text-xs text-gray-500 text-right",
-        style: { fontSize: '6px' }
-      }, data[data.length - 1].date)
+        style: { fontSize: '12px' }
+      }, visibleData[visibleData.length - 1].date)
     ]),
     tooltip.show && React.createElement('div', {
-      className: "absolute bg-white p-1 rounded shadow-lg text-xs pointer-events-none",
+      className: "absolute bg-white p-2 rounded shadow-lg text-sm pointer-events-none",
       style: {
         left: tooltip.x + 'px',
-        top: (tooltip.y - 10) + 'px',
+        top: (tooltip.y - 15) + 'px',
         transform: 'translate(-50%, -100%)',
         pointerEvents: 'none'
       }

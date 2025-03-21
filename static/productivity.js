@@ -106,7 +106,9 @@ const SimpleBarChart = () => {
               y,
               value: point.value,
               percentChange: point.percentChange,
-              date: `${point.date} (${point.dayName})`
+              date: point.date,
+              dayName: point.dayName
+
             });
           },
           onMouseLeave: () => setTooltip({ show: false })
@@ -140,8 +142,9 @@ const SimpleBarChart = () => {
       }, `Value: ${tooltip.value.toFixed(1)}`),
       React.createElement('div', {
         className: tooltip.percentChange >= 0 ? "font-bold text-green-500" : "font-bold text-red-500"
-      }, `vs Same Day: ${tooltip.percentChange >= 0 ? '+' : ''}${tooltip.percentChange.toFixed(1)}%`)
-    ])
+      }, `vs All ${tooltip.dayName}s: ${tooltip.percentChange >= 0 ? '+' : ''}${tooltip.percentChange.toFixed(1)}%`)
+
+      ])
   ]);
 };
 

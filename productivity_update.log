@@ -1,0 +1,16 @@
+2025-02-05 18:58:43,965 - INFO - Starting productivity update
+2025-02-05 18:58:57,913 - INFO - Successfully completed productivity update
+2025-02-06 19:47:58,210 - INFO - Starting productivity update
+2025-02-06 19:48:25,732 - INFO - Successfully completed productivity update
+2025-03-20 21:50:14,572 - INFO - Starting productivity update
+2025-03-20 21:50:24,240 - ERROR - Error in productivity update: no such table: productivity
+Traceback (most recent call last):
+  File "c:\Users\patyt\PycharmProjects\fuckOffFriday\update_db.py", line 29, in main
+    update_productivity(foo)
+  File "c:\Users\patyt\PycharmProjects\fuckOffFriday\database.py", line 47, in update_productivity
+    c.execute('INSERT OR REPLACE INTO productivity (date, value) VALUES (?, ?)',
+sqlite3.OperationalError: no such table: productivity
+2025-03-20 21:53:47,586 - INFO - Starting productivity update
+2025-03-20 21:53:59,869 - INFO - Successfully completed productivity update
+2025-05-05 20:56:10,162 - INFO - Starting productivity update
+2025-05-05 20:56:47,209 - INFO - Successfully completed productivity update

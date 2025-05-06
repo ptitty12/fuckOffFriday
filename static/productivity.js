@@ -155,9 +155,9 @@ const ProductivityGauge = () => {
   
   useEffect(() => {
     fetch('/api/productivity')
-      .then(response => response.json())
+      .then(r => r.json())
       .then(data => {
-        setTargetValue(data.value * 100);
+        setTargetValue(data.value);
       })
       .catch(error => console.error('Error fetching productivity:', error));
   }, []);

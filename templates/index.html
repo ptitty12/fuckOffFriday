@@ -1,193 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productivity Tracker</title>
-    <!-- React and ReactDOM -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Your component -->
-    <script src="{{ url_for('static', filename='productivity.js') }}" defer></script>
-    <style>
-        /* Animated background */
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-            background: linear-gradient(120deg, #f0f9ff 0%, #e6f4ff 100%);
-        }
-
-        .shape {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(5px);
-            opacity: 0.6;
-            animation: float 20s infinite;
-        }
-
-        .shape-1 {
-            width: 300px;
-            height: 300px;
-            background: linear-gradient(45deg, #60a5fa, #93c5fd);
-            top: -150px;
-            left: -150px;
-            animation-delay: -2s;
-        }
-
-        .shape-2 {
-            width: 200px;
-            height: 200px;
-            background: linear-gradient(45deg, #34d399, #6ee7b7);
-            bottom: -100px;
-            right: -100px;
-            animation-delay: -5s;
-        }
-
-        .shape-3 {
-            width: 150px;
-            height: 150px;
-            background: linear-gradient(45deg, #f87171, #fca5a5);
-            top: 50%;
-            left: 20%;
-            animation-delay: -8s;
-        }
-
-        .dots {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(circle, #2563eb 1px, transparent 1px);
-            background-size: 50px 50px;
-            opacity: 0.1;
-        }
-
-        .floating-squares {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .square {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            border: 2px solid rgba(99, 102, 241, 0.2);
-            animation: rotateFloat 15s infinite linear;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translate(0, 0) rotate(0deg);
-            }
-            25% {
-                transform: translate(50px, 50px) rotate(90deg);
-            }
-            50% {
-                transform: translate(0, 100px) rotate(180deg);
-            }
-            75% {
-                transform: translate(-50px, 50px) rotate(270deg);
-            }
-        }
-
-        @keyframes rotateFloat {
-            0% {
-                transform: rotate(0deg) translateY(0);
-            }
-            50% {
-                transform: rotate(180deg) translateY(100px);
-            }
-            100% {
-                transform: rotate(360deg) translateY(0);
-            }
-        }
-
-        /* Floating emojis */
-        .emoji {
-            position: absolute;
-            font-size: 24px;
-            opacity: 0.7;
-            animation: emojiFloat 20s infinite linear;
-            user-select: none;
-        }
-
-        @keyframes emojiFloat {
-            0% {
-                transform: translate(0, 0) rotate(0deg);
-            }
-            33% {
-                transform: translate(30px, -50px) rotate(10deg);
-            }
-            66% {
-                transform: translate(-30px, -100px) rotate(-10deg);
-            }
-            100% {
-                transform: translate(0, -150px) rotate(0deg);
-                opacity: 0;
-            }
-        }
-
-        /* Position emojis */
-        .emoji:nth-child(1) { left: 15%; animation-delay: -2s; }
-        .emoji:nth-child(2) { left: 25%; animation-delay: -5s; }
-        .emoji:nth-child(3) { left: 40%; animation-delay: -8s; }
-        .emoji:nth-child(4) { left: 60%; animation-delay: -11s; }
-        .emoji:nth-child(5) { left: 75%; animation-delay: -14s; }
-        .emoji:nth-child(6) { left: 85%; animation-delay: -17s; }
-
-        /* Generate multiple squares with different positions and animations */
-        .square:nth-child(1) { top: 10%; left: 10%; animation-delay: -2s; }
-        .square:nth-child(2) { top: 20%; left: 80%; animation-delay: -4s; }
-        .square:nth-child(3) { top: 70%; left: 15%; animation-delay: -6s; }
-        .square:nth-child(4) { top: 80%; left: 75%; animation-delay: -8s; }
-        .square:nth-child(5) { top: 40%; left: 30%; animation-delay: -10s; }
-        .square:nth-child(6) { top: 30%; left: 60%; animation-delay: -12s; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>fuck off friday</title>
+  <meta name="description" content="Is it just you, or is nobody working today? A meter built on search traffic for the software people only google at work.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏖️</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>window.FOF = { companies: {{ companies|tojson }}, tz: {{ tz|tojson }} };</script>
 </head>
-<body class="overflow-hidden">
-    <!-- Animated background -->
-    <div class="animated-bg">
-        <div class="dots"></div>
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-        <div class="shape shape-3"></div>
-        <div class="floating-squares">
-            <div class="square"></div>
-            <div class="square"></div>
-            <div class="square"></div>
-            <div class="square"></div>
-            <div class="square"></div>
-            <div class="square"></div>
+<body>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <header class="top">
+    <a class="wordmark" href="/">fuck off <span>friday</span></a>
+    <nav class="links">
+      <a href="#how" class="link">how it works</a>
+      <a href="https://github.com/ptitty12/fuckOffFriday" target="_blank" rel="noopener" class="link" title="GitHub">github</a>
+      <a href="https://twitter.com/patricktaylor05" target="_blank" rel="noopener" class="link" title="Twitter">@patricktaylor05</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="hero" aria-live="polite">
+      <p class="eyebrow" id="hero-eyebrow">loading…</p>
+      <div class="hero-number"><span id="hero-value" class="hero-value">—</span></div>
+      <p class="hero-sub" id="hero-sub">productivity vs. a normal day</p>
+      <p class="mood" id="hero-mood"><span class="mood-emoji"></span><span class="mood-label"></span></p>
+      <p class="meta" id="hero-meta"></p>
+      <div class="chips" id="hero-companies"></div>
+      <p class="notice" id="hero-notice" hidden></p>
+    </section>
+
+    <section class="tiles" id="tiles"></section>
+
+    <section class="card" id="history">
+      <div class="card-head">
+        <div>
+          <h2>Day by day</h2>
+          <p class="hint">Settled score for each day vs. its own weekday. Weekends are faded. Hover for details.</p>
         </div>
-        <!-- Floating emojis -->
-        <div class="floating-emojis">
-            <div class="emoji" style="bottom: 0;">💻</div>
-            <div class="emoji" style="bottom: 0;">📊</div>
-            <div class="emoji" style="bottom: 0;">📈</div>
-            <div class="emoji" style="bottom: 0;">💼</div>
-            <div class="emoji" style="bottom: 0;">📱</div>
-            <div class="emoji" style="bottom: 0;">⌨️</div>
+        <div class="seg" role="tablist" id="range">
+          <button data-days="30" role="tab">30d</button>
+          <button data-days="90" role="tab" class="on">90d</button>
+          <button data-days="365" role="tab">1y</button>
+          <button data-days="0" role="tab">all</button>
         </div>
-        <!-- Second set of emojis with different timing -->
-        <div class="floating-emojis" style="animation-delay: -10s;">
-            <div class="emoji" style="bottom: 0;">🖥️</div>
-            <div class="emoji" style="bottom: 0;">📑</div>
-            <div class="emoji" style="bottom: 0;">✉️</div>
-            <div class="emoji" style="bottom: 0;">📋</div>
-            <div class="emoji" style="bottom: 0;">🗄️</div>
-            <div class="emoji" style="bottom: 0;">📁</div>
+      </div>
+      <div class="chart-wrap">
+        <svg id="chart" class="chart" role="img" aria-label="Daily productivity score"></svg>
+        <div id="tooltip" class="tooltip" hidden></div>
+      </div>
+      <p class="legend">
+        <span class="key"><i class="sw pos"></i>above normal</span>
+        <span class="key"><i class="sw neg"></i>below normal</span>
+        <span class="key"><i class="sw today"></i>today so far (calibrated)</span>
+      </p>
+    </section>
+
+    <section class="card" id="profile">
+      <div class="card-head">
+        <div>
+          <h2>Which day do people actually fuck off?</h2>
+          <p class="hint" id="profile-hint">Typical level of each day vs. that week's Monday–Friday average.</p>
         </div>
-    </div>
-    
-    <!-- Main content -->
-    <div id="root"></div>
+      </div>
+      <div class="profile" id="profile-bars"></div>
+    </section>
+
+    <section class="card prose" id="how">
+      <h2>How it works</h2>
+      <p>Getting ghosted by your coworkers? Feeling unmotivated? Want to know if it's just you?</p>
+      <p>This meter watches US Google search interest for <strong id="how-companies"></strong>: software nobody googles for fun. When searches run below a normal day of the week, people aren't working. The big number is today's search interest compared with the median of the same weekday over the last 90 days, so a Friday is only ever judged against other Fridays.</p>
+      <h3>Why old grabs matter</h3>
+      <p>Google reports the current day with only the hours it has seen so far, so a grab taken at 9am always looks like a disaster. Every pull is now archived in full. Once a day has settled, we compare that day's early reading with where it ended up; the median of those completion factors for the same hour (and, when we have enough, the same weekday) is what turns today's partial number into an honest estimate. Until three comparable grabs exist, the headline falls back to the last settled day and the live number is shown as raw.</p>
+      <h3>Calibration status</h3>
+      <div class="status" id="status"></div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Not science. Lower than normal means fewer people are googling their work tools; draw your own conclusions. Data via DataForSEO's Google Trends API.</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </body>
 </html>

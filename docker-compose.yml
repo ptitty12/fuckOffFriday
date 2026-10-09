@@ -1,0 +1,22 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file: .env
+    volumes:
+      - fof-data:/data
+    restart: unless-stopped
+
+  # Grabs Google Trends every FOF_UPDATE_INTERVAL_HOURS and archives every pull.
+  # More grabs per day = faster, better calibration of the partial-day reading.
+  updater:
+    build: .
+    command: ["python", "scheduler.py"]
+    env_file: .env
+    volumes:
+      - fof-data:/data
+    restart: unless-stopped
+
+volumes:
+  fof-data:
